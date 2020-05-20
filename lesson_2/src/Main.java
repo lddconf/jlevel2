@@ -1,4 +1,8 @@
 public class Main {
+
+    private final static int ARRAY_ROWS = 4;
+    private final static int ARRAY_COLUMNS = 4;
+
     public static void main(String[] args) {
 
         //Correct array
@@ -59,15 +63,15 @@ public class Main {
      * @throws MyArrayDataException not integer input array element provided.
      */
     private static int transformToInt(String[][] data) throws MyArraySizeException, MyArrayDataException {
-        if ( data.length != 4 ) throw new MyArraySizeException(data.length, -1);
+        if ( data.length != ARRAY_ROWS ) throw new MyArraySizeException(data.length, -1);
         int result = 0;
         int i = 0;
         int j = 0;
 
         try {
-            for (i = 0; i < 4; i++) {
-                if (data[i].length != 4) throw new MyArraySizeException(data.length, data[i].length);
-                for (j = 0; j < 4; j++) {
+            for ( i = 0; i < data.length; i++ ) {
+                if ( data[i].length != ARRAY_COLUMNS ) throw new MyArraySizeException(data.length, data[i].length);
+                for ( j = 0; j < data[i].length; j++ ) {
                     result += Integer.valueOf(data[i][j]);
                 }
             }
