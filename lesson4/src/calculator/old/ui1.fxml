@@ -1,0 +1,118 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuItem?>
+<?import java.net.URL?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import calculator.ButtonNames?>
+
+<BorderPane fx:controller="calculator.Controller"
+            xmlns:fx="http://javafx.com/fxml" >
+    <stylesheets>
+        <URL value="@/task1/css/style.css" />
+    </stylesheets>
+
+    <top>
+        <TextField fx:id="textField" editable="false"/>
+    </top>
+
+    <center>
+
+    <HBox>
+        <GridPane HBox.hgrow="ALWAYS" >
+
+            <columnConstraints>
+                <ColumnConstraints fillWidth="true" prefWidth="80" />
+                <ColumnConstraints fillWidth="true" prefWidth="80" />
+                <ColumnConstraints fillWidth="true" prefWidth="110"/>
+                <ColumnConstraints fillWidth="true" prefWidth="50"/>
+            </columnConstraints>
+
+            <rowConstraints>
+                <RowConstraints fillHeight="true"></RowConstraints>
+                <RowConstraints fillHeight="true"></RowConstraints>
+                <RowConstraints fillHeight="true"></RowConstraints>
+                <RowConstraints fillHeight="true"></RowConstraints>
+                <RowConstraints fillHeight="true"></RowConstraints>
+            </rowConstraints>
+            <Button onMouseClicked="#clicked" GridPane.columnIndex="0" GridPane.rowIndex="0"  >
+                    <text>
+                        <ButtonNames fx:constant="op_ce" />
+                    </text>
+                </Button>
+                <Button onMouseClicked="#clicked" GridPane.columnIndex="1" GridPane.rowIndex="0" >
+                    <text>
+                        <ButtonNames fx:constant="op_c"/>
+                    </text>
+                </Button>
+                <Button onMouseClicked="#clicked" GridPane.columnIndex="2" GridPane.rowIndex="0" >
+                    <text>
+                        <ButtonNames fx:constant="op_backspace"/>
+                    </text>
+                </Button>
+                <Button onMouseClicked="#clicked" GridPane.columnIndex="3" GridPane.rowIndex="0" >
+                    <text>
+                        <ButtonNames fx:constant="op_divide"/>
+                    </text>
+                </Button>
+
+            <Button text="7" onMouseClicked="#clicked" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <Button text="8"  onMouseClicked="#clicked" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button text="9"  onMouseClicked="#clicked" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <Button onMouseClicked="#clicked" GridPane.columnIndex="3" GridPane.rowIndex="1" >
+                <text>
+                    <ButtonNames fx:constant="op_multiply"/>
+                </text>
+            </Button>
+
+            <Button text="4" onMouseClicked="#clicked" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <Button text="5" onMouseClicked="#clicked" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            <Button text="6" onMouseClicked="#clicked" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+            <Button onMouseClicked="#clicked" GridPane.columnIndex="3" GridPane.rowIndex="2" >
+                <text>
+                    <ButtonNames fx:constant="op_minus"/>
+                </text>
+            </Button>
+
+            <Button text="1" onMouseClicked="#clicked" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <Button text="2" onMouseClicked="#clicked" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+            <Button text="3" onMouseClicked="#clicked" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+            <Button HBox.hgrow="ALWAYS" onMouseClicked="#clicked" GridPane.columnIndex="3" GridPane.rowIndex="3">
+                <text>
+                    <ButtonNames fx:constant="op_plus"/>
+                </text>
+            </Button>
+
+            <Button onMouseClicked="#clicked" GridPane.columnIndex="0" GridPane.rowIndex="4">
+                <text>
+                    <ButtonNames fx:constant="op_plus_minus"/>
+                </text>
+            </Button>
+            <Button text="0" onMouseClicked="#clicked" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            <Button onMouseClicked="#clicked" GridPane.columnIndex="2" GridPane.rowIndex="4">
+                <text>
+                    <ButtonNames fx:constant="op_fractional"/>
+                </text>
+            </Button>
+            <Button onMouseClicked="#clicked" GridPane.columnIndex="3" GridPane.rowIndex="4">
+                <text>
+                    <ButtonNames fx:constant="op_equal"/>
+                </text>
+            </Button>
+
+
+        </GridPane>
+    </HBox>
+    </center>
+</BorderPane>
