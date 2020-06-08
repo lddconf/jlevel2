@@ -18,6 +18,7 @@ public class ClientIOHandler {
     final String IP_ADDRESS = "localhost";
     final int PORT = 10000;
 
+
     private Controller controller;
     private DataInputStream  istream;
     private DataOutputStream ostream;
@@ -74,7 +75,6 @@ public class ClientIOHandler {
                         }
                     }
                 } catch (EOFException e ) {
-
                 } catch (ConnectException e) {
                    view.printMessage("I'm","Can't connect to: " + IP_ADDRESS + ":" + PORT);
                 } catch (IOException e) {
@@ -82,7 +82,10 @@ public class ClientIOHandler {
                 }  finally {
                     try {
                         view.printMessage("I'm","Connection is now closed: " + socket.getInetAddress() + ":" + socket.getPort() );
-                        socket.close();
+                        if ( socket != null ) {
+                            socket.close();
+                        }
+                        socket = null;
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -90,8 +93,13 @@ public class ClientIOHandler {
             });
             t.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            view.printMessage("I'm","Can't connect to: " + IP_ADDRESS + ":" + PORT);
+            socket = null;
         }
+    }
+
+    public boolean isConnected() {
+        return socket != null;
     }
 
     public void tryAuthenticate(String login, String password) {

@@ -126,7 +126,7 @@ public class Controller implements Initializable, Loggable {
     }
 
     public void btnAuth(MouseEvent mouseEvent) {
-        if ( handler == null ) {
+        if ( handler == null || !handler.isConnected()) {
             handler = new ClientIOHandler(this, this);
         }
         handler.tryAuthenticate(loginTextField.getText(),passwordField.getText());
