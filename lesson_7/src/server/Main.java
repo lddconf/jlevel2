@@ -13,7 +13,7 @@ public class Main {
         while (true) {
             String message = scanner.nextLine();
             if ( message.length() != 0 ) {
-                server.sendMessageToClients(message);
+                server.sendMessageToAllClients("Server", message);
             }
         }
     }
