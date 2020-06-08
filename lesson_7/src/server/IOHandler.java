@@ -99,6 +99,7 @@ public class IOHandler {
                     }
                 }
             });
+            t.setDaemon(true);
             t.start();
         } catch (IOException e) {
             e.printStackTrace();
