@@ -44,7 +44,7 @@ public class SimpleAuthService implements AuthService {
     public String getNickByLoginAndPassword(String login, String password) {
         for (int i = 0; i < users.size(); i++) {
             UserData usr = users.get(i);
-            if ( usr.getLogin().equals(login) || usr.getPassword().equals(password) ) {
+            if ( usr.getLogin().equals(login) && usr.getPassword().equals(password) ) {
                 return usr.getNickname();
             }
         }
