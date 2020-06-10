@@ -22,7 +22,7 @@ public class ClientIOHandler {
     private Controller controller;
     private DataInputStream  istream;
     private DataOutputStream ostream;
-
+    private Thread t;
     public String getNick() {
         return nick;
     }
@@ -35,11 +35,26 @@ public class ClientIOHandler {
             istream = new DataInputStream(socket.getInputStream());
             ostream = new DataOutputStream(socket.getOutputStream());
 
-            Thread t = new Thread(() ->{
+            t = new Thread(() ->{
                 try {
                     //Auth loop
-                    while (true) {
+                    while (!Thread.interrupted()) {
                         String str = istream.readUTF();
+                        if ( str.startsWith("/regOk")) {
+                            view.printMessage("I'm", "Registration succeed");
+                            continue;
+                        }
+
+                        if ( str.startsWith("/regErr ")) {
+                            String[] tokens = str.split("\\s", 2);
+                            if ( tokens.length != 2 ) {
+                                view.printMessage("I'm", "Invalid registration data");
+                            } else {
+                                view.printMessage("I'm", tokens[1]);
+                            }
+                            continue;
+                        }
+
                         if ( str.startsWith("/authOk ")) {
                             String[] tokens = str.split("\\s", 2);
                             if ( tokens.length != 2 ) {
@@ -54,7 +69,8 @@ public class ClientIOHandler {
                         view.printMessage("I'm", "Authentication error");
                     }
 
-                    while (true) {
+                    //Main loop
+                    while (!Thread.interrupted()) {
                         String str = istream.readUTF();
                         if ( str.equals("/end") ) {
                             break;
@@ -85,9 +101,11 @@ public class ClientIOHandler {
                         if ( socket != null ) {
                             socket.close();
                         }
-                        socket = null;
                     } catch (IOException e) {
                         e.printStackTrace();
+                    } finally {
+                        socket = null;
+                        controller.setAuthenticated(false);
                     }
                 }
             });
@@ -129,4 +147,24 @@ public class ClientIOHandler {
         }
     }
 
+    public void tryRegistration(String login, String password, String nickname) {
+        if (( !authenticated ) && (socket != null ) && (socket.isConnected())) {
+            sendMessage("/reg " + login + " " + password + " " + nickname);
+        }
+    }
+
+    public void disconnect()  {
+        if ( isConnected() ) {
+            sendMessage("/end");
+            if ( socket != null ) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                }
+                socket = null;
+            }
+            t.interrupt();
+            controller.setAuthenticated(false);
+        }
+    }
 }

@@ -9,30 +9,60 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class IOHandler {
+    static final int AUTH_TIMEOUT_MS = 120 * 1000;
+    static final int WORK_TIMEOUT_MS = 1800 * 1000;
+
     private Loggable view;
     private Socket socket;
     private Server server;
     private String nick;
     private String connectionInfo;
-
     private DataInputStream  istream;
     private DataOutputStream ostream;
+    private boolean doStuff;
+    private Thread t;
 
     public IOHandler(Loggable log, Socket socket, Server server) {
         this.view = log;
         this.socket = socket;
         this.server = server;
         this.nick = null;
+        this.doStuff = true;
+
         connectionInfo = socket.getInetAddress() + ":" + socket.getPort();
         try {
             istream = new DataInputStream(socket.getInputStream());
             ostream = new DataOutputStream(socket.getOutputStream());
 
-            Thread t = new Thread(() ->{
+
+            t = new Thread(() ->{
                 try {
                     //Auth Log
-                    while (true) {
+                    socket.setSoTimeout(AUTH_TIMEOUT_MS ); //Set timeout
+                    while (!Thread.interrupted()) {
                         String str = istream.readUTF();
+
+                        //Registration
+                        if ( str.startsWith( "/reg" )) {
+                            String[] tokens = str.split("\\s");
+                            if ( tokens.length != 4 ) {
+                                log.printMessage(connectionInfo, "Registration error");
+                                sendMessage("/regErr Invalid Registration data");
+                                continue;
+                            }
+
+                            if ( !server.registerNewUser(tokens[1], tokens[2], tokens[3]) ) {
+                                log.printMessage(connectionInfo, "Registration error");
+                                sendMessage("/regErr Login already in use");
+                                continue;
+                            }
+
+                            log.printMessage(connectionInfo, "User \"" + tokens[3] + "\" " + "registered");
+                            sendMessage("/regOk ");
+                            continue;
+                        }
+
+                        //Authentication
                         if ( !str.startsWith("/auth ")) {
                             log.printMessage(connectionInfo, "Authentication error");
                             sendMessage("/authErr Invalid authentication data");
@@ -61,7 +91,9 @@ public class IOHandler {
                     }
                     server.subscribe(socket, this);
 
-                    while (true) {
+                    //Disable socket timeout
+                    socket.setSoTimeout(WORK_TIMEOUT_MS);
+                    while (!Thread.interrupted()) {
                         String str = istream.readUTF();
                         if ( str.equals("/end") ) {
                             break;
@@ -81,12 +113,11 @@ public class IOHandler {
                             log.printMessage(nick , str);
                             server.sendMessageToAllClients(nick, str);
                         }
-
                     }
                 } catch (EOFException e ) {
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+
                 }  finally {
                     try {
                         System.out.println("Connection is now closed: " + socket.getInetAddress() + ":" + socket.getPort() );
@@ -95,7 +126,7 @@ public class IOHandler {
                         }
                         socket.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+
                     }
                 }
             });
@@ -116,6 +147,38 @@ public class IOHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendOnlineUsersList( int status, String[] userList) {
+        if ( status > 0 ) {
+            this.sendMessage("/clientlistonline " +  userList.toString() );
+        } else {
+            this.sendMessage("/clientlistoffline " +  userList.toString() );
+        }
+    }
+
+    public void sendOnlineUserList( int status, String userList) {
+        if ( status > 0 ) {
+            this.sendMessage("/clientlistonline " +  userList );
+        } else {
+            this.sendMessage("/clientlistoffline " +  userList );
+        }
+    }
+
+    public void shutDown() {
+        sendMessage( "/end");
+        if ( server != null ) {
+            server.unsubscribe(socket);
+        }
+        try {
+            doStuff = false;
+            if (( t != null ) && (!t.isInterrupted() )) t.interrupt();
+            socket.close();
+        } catch (IOException e) {
+
+        }
+
+        System.out.println("Connection is now closed: " + connectionInfo );
     }
 
     public synchronized String getNick() {

@@ -14,6 +14,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import java.net.URL ?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ComboBox?>
 <BorderPane fx:controller="smartchart.Controller"
             xmlns:fx="http://javafx.com/fxml" >
     <stylesheets>
@@ -21,7 +22,9 @@
     </stylesheets>
     <top>
         <MenuBar>
-            <Menu text="File">
+            <Menu text="Program">
+                <MenuItem text="Connect" fx:id="connect" onAction="#onConnectClicked"/>
+                <MenuItem text="Registration" fx:id="menuRegistration" onAction="#onRegClicked"/>
                 <MenuItem text="Exit" fx:id="menuExit" onAction="#onExitClicked"/>
             </Menu>
         </MenuBar>
@@ -33,6 +36,7 @@
 
     <bottom>
         <HBox alignment="CENTER">
+            <ComboBox fx:id="usersList" managed="true" HBox.hgrow="SOMETIMES"/>
             <TextField fx:id="textField" onKeyPressed="#onKeyPressed" managed="true" HBox.hgrow="ALWAYS"/>
             <Button fx:id="button" onMouseClicked="#btnClicked" managed="true" text="Send" HBox.hgrow="SOMETIMES"/>
             <Label fx:id="logintxt" text="Login" managed="true" HBox.hgrow="SOMETIMES"/>

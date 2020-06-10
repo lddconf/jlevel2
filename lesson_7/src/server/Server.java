@@ -70,21 +70,38 @@ public class Server {
     }
 
     public void subscribe(Socket socket, IOHandler handler ) {
+        String[] nicknames;
         synchronized (clients) {
+            //Send all users info about new user
+            nicknames = new String[clients.keySet().size()];
+            clients.keySet().toArray(nicknames);
+            clients.forEach((name, hlr)->{
+                hlr.sendOnlineUserList(1, handler.getNick());
+            });
             clients.put(handler.getNick(), handler);
         };
+        //Send new user info about existed users
+        handler.sendOnlineUsersList(1, nicknames);
     }
 
     public void unsubscribe(Socket socket) {
         synchronized (clients) {
             clients.remove(socket);
+
+
         };
     }
 
 
-    public String getNickNameFor( String loggin, String password ) {
+    public String getNickNameFor( String login, String password ) {
         synchronized (authService) {
-            return authService.getNickByLoginAndPassword( loggin, password );
+            return authService.getNickByLoginAndPassword( login, password );
+        }
+    }
+
+    public boolean registerNewUser( String login, String password, String nickname ) {
+        synchronized (authService) {
+            return authService.registration(login, password, nickname);
         }
     }
 
