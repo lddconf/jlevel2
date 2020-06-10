@@ -9,6 +9,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class ClientIOHandler {
     private Loggable view;
@@ -18,11 +19,12 @@ public class ClientIOHandler {
     final String IP_ADDRESS = "localhost";
     final int PORT = 10000;
 
-
+    private String socketInfo;
     private Controller controller;
     private DataInputStream  istream;
     private DataOutputStream ostream;
     private Thread t;
+
     public String getNick() {
         return nick;
     }
@@ -34,7 +36,7 @@ public class ClientIOHandler {
             socket = new Socket(IP_ADDRESS, PORT);;
             istream = new DataInputStream(socket.getInputStream());
             ostream = new DataOutputStream(socket.getOutputStream());
-
+            socketInfo = socket.getInetAddress() + ":" + socket.getPort();
             t = new Thread(() ->{
                 try {
                     //Auth loop
@@ -89,6 +91,20 @@ public class ClientIOHandler {
                                 view.printMessage(tokens[2], tokens[3]);
                             }
                         }
+
+                        if (str.startsWith("/clientlistonline ")) {
+                            String[] tokens = str.split("\\s" );
+                            if ( tokens.length > 1 ) {
+                                controller.addOnlineUsers(Arrays.copyOfRange(tokens, 1, tokens.length));
+                            }
+                        }
+
+                        if (str.startsWith("/clientlistoffline ")) {
+                            String[] tokens = str.split("\\s" );
+                            if ( tokens.length > 1 ) {
+                                controller.removeOfflineUsers(Arrays.copyOfRange(tokens, 1, tokens.length));
+                            }
+                        }
                     }
                 } catch (EOFException e ) {
                 } catch (ConnectException e) {
@@ -97,12 +113,12 @@ public class ClientIOHandler {
                     e.printStackTrace();
                 }  finally {
                     try {
-                        view.printMessage("I'm","Connection is now closed: " + socket.getInetAddress() + ":" + socket.getPort() );
+                        view.printMessage("I'm","Connection is now closed: " + socketInfo );
                         if ( socket != null ) {
                             socket.close();
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+
                     } finally {
                         socket = null;
                         controller.setAuthenticated(false);

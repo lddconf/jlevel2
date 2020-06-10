@@ -89,10 +89,9 @@ public class IOHandler {
                         sendMessage("/authOk "+nick);
                         break;
                     }
-                    server.subscribe(socket, this);
-
                     //Disable socket timeout
                     socket.setSoTimeout(WORK_TIMEOUT_MS);
+                    server.subscribe(this);
                     while (!Thread.interrupted()) {
                         String str = istream.readUTF();
                         if ( str.equals("/end") ) {
@@ -120,9 +119,9 @@ public class IOHandler {
 
                 }  finally {
                     try {
-                        System.out.println("Connection is now closed: " + socket.getInetAddress() + ":" + socket.getPort() );
+                        System.out.println("Connection is now closed: " + connectionInfo );
                         if ( server != null ) {
-                            server.unsubscribe(socket);
+                            server.unsubscribe(this);
                         }
                         socket.close();
                     } catch (IOException e) {
@@ -149,14 +148,6 @@ public class IOHandler {
         }
     }
 
-    public void sendOnlineUsersList( int status, String[] userList) {
-        if ( status > 0 ) {
-            this.sendMessage("/clientlistonline " +  userList.toString() );
-        } else {
-            this.sendMessage("/clientlistoffline " +  userList.toString() );
-        }
-    }
-
     public void sendOnlineUserList( int status, String userList) {
         if ( status > 0 ) {
             this.sendMessage("/clientlistonline " +  userList );
@@ -168,7 +159,7 @@ public class IOHandler {
     public void shutDown() {
         sendMessage( "/end");
         if ( server != null ) {
-            server.unsubscribe(socket);
+            server.unsubscribe(this);
         }
         try {
             doStuff = false;

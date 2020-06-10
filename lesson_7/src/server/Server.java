@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 public class Server {
     private int port;
@@ -15,14 +17,14 @@ public class Server {
     private Thread mainRing;
 
     //IOHandler handler;
-    HashMap<String, IOHandler> clients;
+    HashSet<IOHandler> clients;
 
     public Server( int port ) {
         this.port = port;
         view = new Logger();
         authService = new SimpleAuthService();
 
-        clients = new HashMap<>();
+        clients = new HashSet<>();
         mainRing = new Thread(()->{
             try {
                 serverSocket = new ServerSocket(port);
@@ -48,7 +50,7 @@ public class Server {
     }
 
     public void sendMessageToAllClients(String fromNick, String message) {
-            clients.forEach((name, handler)-> {
+            clients.forEach((handler)-> {
                 synchronized (clients) {
                     if ( !handler.getNick().equals(fromNick)) {
                         handler.sendMessage(fromNick, message);
@@ -59,36 +61,51 @@ public class Server {
 
     public boolean sendMessageTo(String fromNick, String toNick, String message) {
         if ( toNick == "Server") return true;
-        IOHandler handler = clients.get(toNick);
-        if ( handler != null ) {
-            synchronized (clients) {
-                handler.sendMessage(fromNick, message);
+        boolean status = false;
+
+        synchronized (clients) {
+            Iterator<IOHandler> iterator = clients.iterator();
+            IOHandler handler;
+            while ( iterator.hasNext() ) {
+                handler = iterator.next();
+                if ( handler.getNick().equals(toNick)) {
+                    handler.sendMessage(fromNick, message);
+                    status = true;
+                }
             }
-            return true;
         }
-        return false;
+        return status;
     }
 
-    public void subscribe(Socket socket, IOHandler handler ) {
-        String[] nicknames;
+    public void subscribe( IOHandler handler ) {
+        StringBuilder nicknamesList = new StringBuilder();
         synchronized (clients) {
             //Send all users info about new user
-            nicknames = new String[clients.keySet().size()];
-            clients.keySet().toArray(nicknames);
-            clients.forEach((name, hlr)->{
-                hlr.sendOnlineUserList(1, handler.getNick());
-            });
-            clients.put(handler.getNick(), handler);
+            Iterator<IOHandler> iterator = clients.iterator();
+            while ( iterator.hasNext() ) {
+                nicknamesList.append( iterator.next().getNick() );
+                nicknamesList.append(" ");
+            }
+
+            //Inform online users
+            iterator = clients.iterator();
+            while ( iterator.hasNext() ) {
+                iterator.next().sendOnlineUserList(1, handler.getNick());
+            }
+            clients.add(handler);
         };
         //Send new user info about existed users
-        handler.sendOnlineUsersList(1, nicknames);
+        handler.sendOnlineUserList(1, nicknamesList.toString().trim());
     }
 
-    public void unsubscribe(Socket socket) {
+    public void unsubscribe(IOHandler handler) {
         synchronized (clients) {
-            clients.remove(socket);
-
-
+            clients.remove(handler);
+            //Send all users info about new user
+            Iterator<IOHandler> iterator = clients.iterator();
+            while ( iterator.hasNext() ) {
+                iterator.next().sendOnlineUserList(0, handler.getNick());
+            }
         };
     }
 

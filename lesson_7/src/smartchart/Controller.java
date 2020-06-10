@@ -2,6 +2,7 @@ package smartchart;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -15,12 +16,12 @@ import javafx.collections.ObservableList;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import server.Loggable;
 
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.Socket;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.Collections;
 import java.util.ResourceBundle;
@@ -48,7 +49,7 @@ public class Controller implements Initializable, Loggable {
     public MenuItem connect;
 
     @FXML
-    public ComboBox usersList;
+    public ComboBox<String> usersList;
 
     @FXML
     private Button button;
@@ -61,12 +62,26 @@ public class Controller implements Initializable, Loggable {
     private ClientIOHandler handler;
     private RegistrationController registrationController;
     private Stage regStage;
-
+    static final String SEND_TO_ALL = " ALL";
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setAuthenticated(false);
         regStage = createRegWindow();
         setTitle("Not connected");
+
+
+        Platform.runLater(() -> {
+            Stage stage = (Stage) textField.getScene().getWindow();
+            stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+                @Override
+                public void handle(WindowEvent event) {
+                    System.out.println("bue");
+                    if ( handler.isConnected() ) {
+                        handler.disconnect();
+                    }
+                }
+            });
+        });
     }
 
     public void setAuthenticated(boolean status) {
@@ -128,8 +143,12 @@ public class Controller implements Initializable, Loggable {
     private void sendMessage() {
         if ( inValidate() ) {
             synchronized (textArea) {
-                handler.sendMessageToUsers(textField.getText());
-                //textArea.appendText(textField.getText()+"\n");
+                if ( usersList.getValue().equals(SEND_TO_ALL) ) {
+                    handler.sendMessageToUsers(textField.getText());
+                } else {
+                    handler.sendMessageToUsers("/w " + usersList.getValue().toString()
+                                                         + " " + textField.getText());
+                }
             }
             textField.clear();
         }
@@ -153,7 +172,8 @@ public class Controller implements Initializable, Loggable {
 
     public void btnAuth(MouseEvent mouseEvent) {
         if ( handler == null || !handler.isConnected()) {
-            handler = new ClientIOHandler(this, this);
+            onConnectClicked(null);
+            //handler = new ClientIOHandler(this, this);
         }
         handler.tryAuthenticate(loginTextField.getText(),passwordField.getText());
     }
@@ -194,13 +214,18 @@ public class Controller implements Initializable, Loggable {
 
     public void tryRegistration(String login, String password, String nickname) {
         if ( handler == null || !handler.isConnected()) {
-            handler = new ClientIOHandler(this, this);
+            onConnectClicked(null);
+            //handler = new ClientIOHandler(this, this);
         }
         handler.tryRegistration(login, password, nickname);
     }
 
     public void onConnectClicked(ActionEvent actionEvent) {
         if ( handler == null || !handler.isConnected()) {
+            usersList.getItems().clear();
+            usersList.getItems().add(SEND_TO_ALL);
+            usersList.setValue(SEND_TO_ALL);
+
             handler = new ClientIOHandler(this, this);
             connect.setText("Disconnect");
             setTitle("");
@@ -209,5 +234,24 @@ public class Controller implements Initializable, Loggable {
             connect.setText("Disconnect");
             setTitle("[Not connected]");
         }
+    }
+
+    public void addOnlineUsers( String[] users ) {
+        usersList.getItems().addAll(users);
+
+    }
+
+    public void removeOfflineUsers( String[] users ) {
+        usersList.getItems().removeAll( users );
+
+        for (int i = 0; i < users.length; i++) {
+            if ( usersList.getValue().equals(users[i])) {
+                Platform.runLater(() -> {
+                    usersList.setValue(SEND_TO_ALL);
+                });
+                break;
+            }
+        }
+
     }
 }
